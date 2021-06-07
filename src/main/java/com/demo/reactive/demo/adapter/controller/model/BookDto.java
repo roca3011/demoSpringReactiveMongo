@@ -1,9 +1,10 @@
 package com.demo.reactive.demo.adapter.controller.model;
 
 import com.demo.reactive.demo.domain.Book;
-import com.sun.istack.internal.NotNull;
 import lombok.Builder;
 import lombok.Value;
+
+import javax.validation.constraints.NotNull;
 
 @Value
 @Builder

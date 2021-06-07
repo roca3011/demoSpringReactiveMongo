@@ -19,7 +19,10 @@ import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RunWith(SpringRunner.class)
 @ExtendWith(MockitoExtension.class)
@@ -34,18 +37,21 @@ public class BookRegisterServiceTest {
     @Test
     public void addBookToPersonReturnOK(){
         String clientId = "1";
-        Book newBook = fakeBook("3");
+        Book newBook = fakeBook("Book3");
 
-        List<Book> books = Arrays.asList(fakeBook("1"), fakeBook("2"));
-        Mono<Person> getPersonMono = Mono.just(fakePerson(books));
+        Map<String, Book> books = new HashMap<>();
+        books.put("OneBook",fakeBook("OneBook"));
+        books.put("TwoBook",fakeBook("TwoBook"));
 
-        List<Book> newBooks = new ArrayList<>(books);
-        newBooks.add(newBook);
-        Mono<Person> newPersonMono = Mono.just(fakePerson(newBooks));
+        Optional<Person> getPersonMono = Optional.of(fakePerson(books));
+
+        Map<String, Book> newBooks = new HashMap<>(books);
+        newBooks.put("Book3",newBook);
+        Person newPersonMono = fakePerson(newBooks);
 
         when(personRepository.findById(clientId)).thenReturn(getPersonMono);
         when(personRepository.save(any())).thenReturn(newPersonMono);
-        Mono<Person> result = saveBookService.execute(clientId, newBook);
+        Person result = saveBookService.execute(clientId, newBook);
 
         Assert.assertEquals(newPersonMono, result);
     }
@@ -65,7 +71,7 @@ public class BookRegisterServiceTest {
         }
     }
 
-    private Person fakePerson(List<Book> books) {
+    private Person fakePerson(Map<String, Book> books) {
         return Person.builder()
                 .id("1")
                 .firstName("firstNameTest")
@@ -76,10 +82,9 @@ public class BookRegisterServiceTest {
                 .build();
     }
 
-    private Book fakeBook(String id) {
+    private Book fakeBook(String name) {
         return  Book.builder()
-                .id(id)
-                .name("OneBook")
+                .name(name)
                 .pages(100)
                 .price(10000.0)
                 .qty(1)

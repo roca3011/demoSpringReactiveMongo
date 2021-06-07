@@ -8,11 +8,8 @@ import com.demo.reactive.demo.domain.Book;
 import com.demo.reactive.demo.domain.Person;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -25,16 +22,21 @@ public class SaveBookService implements SaveBookCommand {
     }
 
     @Override
-    public Mono<Person> execute(String idClient, Book book){
-        Mono<Person> person = personRepository.findById(idClient);
-        Person getPerson = Objects.nonNull(person)?person.block():null;
-        if (Objects.nonNull(getPerson)){
-            List<Book> newBooks = new ArrayList<>(getPerson.getBooks());
-            newBooks.add(book);
-            getPerson.withBooks(newBooks);
-            log.info("libro(s) agregados correctamente{}",getPerson);
-            return personRepository.save(Mono.just(getPerson));
-        } else log.info("libro(s) no agregados {}",person);
-        throw new BookException(ErrorCode.ERROR_SAVED_BOOK);
+    public Person execute(String clientId, Book book){
+        Optional<Person> personOp = personRepository.findById(clientId);
+        Person person = personOp.orElseThrow(() -> {
+            log.info("libro(s) no agregados {}",personOp);
+            return new BookException(ErrorCode.ERROR_SAVED_BOOK);
+        });
+
+        Person updated = addNewBook(book, person);
+        return personRepository.save(updated);
+    }
+
+    private Person addNewBook(Book book, Person person) {
+        Person updatePerson = (Person) person.clone();
+        updatePerson.getBooks().put(book.getName(),book);
+        log.info("libro(s) agregados{}", updatePerson);
+        return updatePerson;
     }
 }

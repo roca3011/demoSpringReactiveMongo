@@ -9,9 +9,12 @@ import org.springframework.beans.BeanUtils;
 public class EntityMapper {
 
     public static Product entityToDto(ProductEntity productEntity){
-        Product product = Product.builder().build();
-        BeanUtils.copyProperties(productEntity, product);
-        return product;
+        return Product.builder()
+                .id(productEntity.getId())
+                .name(productEntity.getName())
+                .qty(productEntity.getQty())
+                .price(productEntity.getPrice())
+                .build();
     }
 
     public static ProductEntity dtoToEntity(Product product){
